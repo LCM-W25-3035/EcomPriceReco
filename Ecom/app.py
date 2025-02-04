@@ -5,7 +5,7 @@ def get_database():
     """Establish a connection to the MongoDB database."""
     try:
         # Provide the MongoDB URI here (modify as per your setup)
-        mongo_uri = "mongodb+srv://ecomadmin:Admin123@ecomcluster.tlxtn.mongodb.net/?retryWrites=true&w=majority&appName=EcomCluster"
+        mongo_uri = "mongodb+srv://<ecomadmin>:<password>@ecomcluster.tlxtn.mongodb.net/?retryWrites=true&w=majority&appName=EcomCluster"
         client = MongoClient(mongo_uri)
 
         # Connect to a specific database
