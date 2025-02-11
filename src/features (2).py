@@ -1,3 +1,9 @@
+#OpenAI. (2025). ChatGPT (February 2025 Version). OpenAI. https://openai.com/
+
+#first prompt : I Need keywords or score to relate the user input 
+#last prompt : Adjust according to my column names
+
+
 # -*- coding: utf-8 -*-
 """Features
 
