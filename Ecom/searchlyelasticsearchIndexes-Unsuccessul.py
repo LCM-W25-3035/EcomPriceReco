@@ -1,4 +1,6 @@
 # searchly unsuccessful
+# first prompt: write a mongodb code to connect aws opensearch to mongodb using the API key
+# even after attempting all these solutions i'm still unable to connect its still asking me for basic kerword in the header
 from elasticsearch import Elasticsearch
 
 # Connect to Searchly using the correct API Key for authentication
