@@ -1,12 +1,16 @@
 ## Ecommerce Product Analysis, Trends, Price Tracking and Recommendations
 Project Overview
 This project aims to collect and analyze product data from Amazon, track prices, and provide product recommendations based on trends. The scraping pipeline is built using Playwright for efficient web scraping, and the data is processed and saved into structured CSV files using fast-csv and p-limit libraries. The project is now in the UI stage, with feature engineering and model building incorporated to enhance the recommendation system and predict price trends using Random Forest (RF) and XGBoost models.
+
 Project Board Link: https://github.com/users/DikshaGori/projects/1
+
 Current Progress
+
 Data Collection
 URL Cleaning: Ensures all input URLs are correctly formatted before scraping to avoid errors during the extraction process.
 Price Extraction: Scrapes product details such as prices, titles, and other attributes from Amazon product pages.
 CSV Handling: Data is processed and saved into CSV files in real-time for easy analysis.
+
 Feature Engineering
 To build a recommendation system and track price trends, several key features have been engineered:
 
@@ -14,6 +18,7 @@ Price History: Track the price of each product over time to identify pricing tre
 Product Attributes: Extracted features like product category, title, and ratings, which will be used to recommend similar products.
 Time-based Features: Including the time of the last price update to help identify seasonal trends or promotions.
 Price vs. Rating Correlation: A feature to evaluate the relationship between product pricing and its user rating for better recommendations.
+
 Model Building
 Using the engineered features, two key machine learning models have been developed to enhance the recommendation system and predict price trends:
 
@@ -42,8 +47,11 @@ UI Development (Current Stage)
 In this phase, the project is focused on building a user interface (UI) to display product details, pricing trends, and recommendations. The goal is to allow users to:
 
 View the scraped product data in an easy-to-read format.
+
 Track price changes over time.
+
 Get product recommendations based on historical data.
+
 Next Steps
 Frontend Development: Designing and implementing the UI to display scraped data and recommendations.
 User Interaction: Allowing users to search, filter, and view product details.
