@@ -1,5 +1,5 @@
 from app import get_database, get_collection,insert_file_into_collection, delete_collection, create_indexes,backup_before_insert
-from preprocessing import preprocessing, fetch_data_from_collection, integrate
+from preprocessing import preprocessing, fetch_data_from_collection, integrate_ui, index_mongodb_data
 
 if __name__ == "__main__":
     collection_name = "ecomprod"
@@ -14,9 +14,12 @@ if __name__ == "__main__":
     # Preprocessing
     # preprocessing(collection_name)
 
-    # Create indexes
+    # Create indexes - Mongodb
     # create_indexes(collection_name)
 
+    # Create indexes - Elastic Search
+    # index_mongodb_data(collection_name)
+
     # UI Integration
-    integrate(collection_name)
+    integrate_ui(collection_name)
 
