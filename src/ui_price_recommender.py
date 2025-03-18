@@ -1,3 +1,7 @@
+#Prompt 1 Using the pickel file create a price recommender with dashboard and search page
+#last prompt Include price recommendation status
+#LLM model used Chatgpt4
+
 # -*- coding: utf-8 -*-
 """UI_Price_Recommender.ipynb
 
