@@ -1,3 +1,10 @@
+#LLM used: claude.ai
+# prompt: provided the code for the model and then for the py file we had for the ui.
+# the project is, the dataset is from amazon that we extracted. and its a new seller entering a market. 
+# hes gonna put new product in amazon and he need a price to put on the product. thats what we recommend. 
+# and add a search bar to search for the products.itll show similar products and they can select one and 
+# itll go to the next oage with recommendation and history etc.
+
 import streamlit as st
 import pandas as pd
 import numpy as np
