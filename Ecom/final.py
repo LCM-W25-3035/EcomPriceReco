@@ -35,20 +35,23 @@ def es_conn():
     return es, index_name
 
 def fetch_data_from_es():
-    es, index_name = es_conn()
-    # Use the scan helper to fetch all data from the index
-    query = {"query": {"match_all": {}}}  # Modify query as needed
-    results = scan(es, query=query, index=index_name, scroll='2m')
-    # print(results)
-    # Convert the results to a DataFrame
-    data = []
-    for hit in results:
-        data.append(hit['_source'])  # Only take the '_source' part of the hit
-    # Create DataFrame
-    df = pd.DataFrame(data)
-    return df
+    try: 
+        es, index_name = es_conn()
+        # Use the scan helper to fetch all data from the index
+        query = {"query": {"match_all": {}}}  # Modify query as needed
+        results = scan(es, query=query, index=index_name, scroll='2m')
+        # Convert the results to a DataFrame
+        data = []
+        for hit in results:
+            data.append(hit['_source'])  # Only take the '_source' part of the hit
+        # Create DataFrame
+        df = pd.DataFrame(data)
+        return df
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
+        
 
-# Function to load data from CSV file
+# Function to load data
 @st.cache_data
 def data_load():
     try:
@@ -209,39 +212,91 @@ def get_category_stats(df, main_category, sub_category=None):
     
     return stats
 
+def get_distinct_values(index, field, es):
+    response = es.search(index="data_ecom", body={
+    "size": 0,
+    "aggs": {
+        "unique_categories": {
+            "terms": {
+                "field": f"{field}.keyword",  
+                "size": 10000
+            }
+        }
+    }})
+    unique_values = [bucket["key"] for bucket in response["aggregations"]["unique_categories"]["buckets"]]
+    return unique_values
+        
+# User search from UI
+def search_products(index_name,search_query,sub_category,main_category, es):
+    """Search for relevant products based on selected filters."""
+    query = {
+        "size": 8,  # Limit results to 8
+        "query": {
+            "bool": {
+                "must": []
+            }
+        }
+    }
+
+    # Apply filters dynamically
+    # if main_category and main_category != "All":
+    #     query["query"]["bool"]["must"].append({"match": {"main_category.keyword": main_category}})
+    
+    if sub_category:
+        query["query"]["bool"]["must"].append({"match": {"sub_category.keyword": sub_category}})
+    
+    if main_category:
+        query["query"]["bool"]["must"].append({"match": {"main_category.keyword": main_category}})
+    
+    if search_query != "":
+        query["query"]["bool"]["must"].append({"match": {"name": {"query": search_query, "fuzziness": "AUTO" }}})
+    response = es.search(index=index_name, body=query)
+    return response["hits"]["hits"]
+
+
 # Function to show search page
 def show_search_page():
     st.title("🔍 Amazon Seller Price Advisor")
     st.write("Find similar products to help determine optimal pricing for your new Amazon listing")
+    es,index_name = es_conn()
+    # df = load_data_from_csv()
     
-    df = data_load()
-    
-    if not df.empty:
+
+    if es:
+        main_categories = get_distinct_values(index_name, "main_category",es)
+        sub_categories = get_distinct_values(index_name, "sub_category",es)
         # Add category selection first
-        categories = sorted(df['main_category'].unique().tolist())
-        selected_main_category = st.selectbox("Select your product's main category", categories)
+        # categories = sorted(main_categories)
+        selected_main_category = st.selectbox("Select your product's main category", main_categories)
         
         # Filter subcategories based on main category
-        subcategories = sorted(df[df['main_category'] == selected_main_category]['sub_category'].unique().tolist())
-        selected_sub_category = st.selectbox("Select your product's subcategory", subcategories)
+        # subcategories = sorted(sub_categories)
+        selected_sub_category = st.selectbox("Select your product's subcategory", sub_categories)
         
         # Add search input
         search_query = st.text_input("Search for similar products (by keywords, features, etc.)", "")
         
         # Apply filters
-        filtered_df = df.copy()
-        filtered_df = filtered_df[filtered_df['main_category'] == selected_main_category]
-        filtered_df = filtered_df[filtered_df['sub_category'] == selected_sub_category]
-        
-        if search_query:
-            filtered_df = filtered_df[filtered_df['name'].str.contains(search_query, case=False, na=False)]
+        # filtered_df = df.copy()
+        # filtered_df = filtered_df[filtered_df['main_category'] == selected_main_category]
+        # filtered_df = filtered_df[filtered_df['sub_category'] == selected_sub_category]
+        products_extracted = search_products(index_name, search_query,selected_sub_category,selected_main_category, es)
         
         # Show results count and category statistics
         st.markdown("---")
         st.subheader(f"Market Analysis: {selected_main_category} > {selected_sub_category}")
+
+        products_list=[]
+        for index, product in enumerate(products_extracted):
+                products_list.append(product["_source"])
+        # if search_query:
+        #     filtered_df = filtered_df[filtered_df['name'].str.contains(search_query, case=False, na=False)]
         
+        
+        # Convert the list of dictionaries to a DataFrame
+        products = pd.DataFrame(products_list)
         # Get and display category statistics
-        cat_stats = get_category_stats(df, selected_main_category, selected_sub_category)
+        cat_stats = get_category_stats(products, selected_main_category, selected_sub_category)
         
         if cat_stats:
             col1, col2, col3, col4 = st.columns(4)
@@ -258,17 +313,17 @@ def show_search_page():
         
         st.markdown("---")
         st.subheader("Similar Products")
-        st.write(f"Found {len(filtered_df)} comparable products")
+        st.write(f"Found {len(products)} comparable products")
         
-        if not filtered_df.empty:
+        if not products.empty:
             # Create three-column layout for products
             num_cols = 3
-            for i in range(0, min(len(filtered_df), 30), num_cols):
+            for i in range(0, min(len(products), 30), num_cols):
                 cols = st.columns(num_cols)
                 for j in range(num_cols):
                     idx = i + j
-                    if idx < len(filtered_df):
-                        product = filtered_df.iloc[idx]
+                    if idx < len(products):
+                        product = products.iloc[idx]
                         with cols[j]:
                             st.markdown("---")
                             
@@ -294,7 +349,7 @@ def show_search_page():
         else:
             st.warning("No comparable products found. Try broadening your search criteria.")
     else:
-        st.error("Failed to load product data.")
+        st.error("Failed to load data.")
 
 # Function to show prediction page
 def show_prediction_page():
